@@ -1,10 +1,10 @@
 ﻿using Microsoft.Owin.Hosting;
 using NUnit.Framework;
 using System;
-using System.Threading.Tasks;
 using TemplateApi.App_Start;
 using System.Net.Http;
 using Shouldly;
+using System.Threading.Tasks;
 
 namespace TemplateApi.Tests.Acceptance
 {
@@ -13,7 +13,9 @@ namespace TemplateApi.Tests.Acceptance
     {
         private IDisposable _webApp;
         private const string FIXED_LOCAL_HOST = "http://localhost:9165";
-        private const string FIXED_ENDPOINT = "api/home/values";
+        private const string FIXED_ENDPOINT = "api/home";
+        private const string NON_EXISTING_ENDPOINT = "api/default";
+
         private const string FIXED_RESPONSE = "\"Valar Morghulis\"";
         private HttpClient HttpClient;
 
@@ -28,14 +30,21 @@ namespace TemplateApi.Tests.Acceptance
         }
 
         [Test]
-        public void Return_Json_With_Information()
+        public async Task Return_Json_With_Information()
         {
-            string content;
-
-            var result = HttpClient.GetAsync(FIXED_ENDPOINT).Result;
-            content = result.Content.ReadAsStringAsync().Result;
+            var result = await HttpClient.GetAsync(FIXED_ENDPOINT);
+            string content = await result.Content.ReadAsStringAsync();
 
             content.ShouldBe(FIXED_RESPONSE, Case.Insensitive);
+        }
+
+
+        [Test]
+        public async Task Non_Existing_Endpoint_NotFound()
+        {
+            var result = await HttpClient.GetAsync(NON_EXISTING_ENDPOINT);
+
+            result.StatusCode.ShouldBe(System.Net.HttpStatusCode.NotFound);
         }
 
         [TearDown]
